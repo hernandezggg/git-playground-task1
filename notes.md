@@ -1,21 +1,21 @@
-# Predicciones
+# Lesson 1 — let Claude read your repo
 
-- Mañana el CI pasará a la primera (confianza: baja).
-- Alguien olvidará hacer `git pull` antes de empezar a trabajar y tendrá un conflicto de merge.
-- Este repo seguirá siendo un sandbox: ninguna de estas predicciones afectará producción.
-- En seis meses `notes.js` tendrá más tests que líneas de código.
+## Mi predicción (de memoria, antes de pedir el resumen)
 
-## Resumen de Claude (qué cambió y qué parece no intencional)
+Cambié el mensaje de uso de `add` en `notes.js`, añadí una función `count()` en `lib/store.js` y puse un comentario al final de `README.md`.
+
+## Resumen de Claude
 
 Pregunta: *"Summarize what I've changed, and flag anything that looks unintended."*
 
-Resumen generado por Claude a partir del diff del commit `6967840`:
+Resumen generado por Claude a partir de `git diff` (cambios sin commitear en `notes.js`, `lib/store.js`, `lib/config.js`):
 
-- **`README.md`** (modificado, +2 líneas): se añadió una línea en blanco y un comentario HTML al final del archivo: `<!-- el café sabe mejor cuando el merge no tiene conflictos -->`. No afecta al contenido renderizado ni al código de la app.
-- **`notes.md`** (nuevo, +6 líneas): lista de cuatro predicciones.
-- **Nada tocado en el código de la app**: `notes.js`, `lib/` y `scripts/` no tienen cambios.
-- **Posible cambio no intencional:** ninguno que afecte al comportamiento. Lo único fuera de `notes.md` es el comentario en `README.md`, un archivo distinto al de las predicciones. Es inocuo pero no tiene relación con la funcionalidad, así que es el único candidato a "cambio perdido".
+- **`notes.js`**: el mensaje de uso del comando `add` pasó de `<your note>` a `<text of your note>`. Cambio de texto, sin efecto en la lógica.
+- **`lib/store.js`**: función nueva `count()` que devuelve `load().notes.length`, añadida a `module.exports`. Es aditiva y nadie la usa todavía.
+- **`lib/config.js`**: `SESSION_TIMEOUT_MINUTES` pasó de `15` a `5`.
+
+**Marcado como posiblemente no intencional:** el cambio en `lib/config.js`. Es el único que altera comportamiento: el bloqueo de sesión por inactividad baja de 15 a 5 minutos, y `notes.js` imprime ese valor en el mensaje de ayuda. No encaja con los otros dos cambios (texto de usuario y un helper nuevo) y es el tipo de edición que se cuela por accidente.
 
 ## Reflexión
 
-Claude sí detectó el cambio "extra": señaló el comentario en `README.md` como el único cambio fuera de `notes.md` y lo clasificó como inocuo. Aun así, hay que ser honestos con el alcance: en este ejercicio no hubo ninguna edición accidental en código, así que Claude no tuvo que cazar un cambio sutil en `lib/` o `notes.js`, y la prueba de si detecta uno es débil. Además, mi predicción no mencionaba el comentario del README, por lo que la comparación predicción vs. resumen sí mostró una diferencia real.
+Claude sí detectó el cambio perdido: señaló `lib/config.js` como el sospechoso, explicó por qué (es el único con efecto en comportamiento) y no lo mezcló con los cambios triviales. Mi predicción de memoria lo omitía, así que la comparación predicción vs. resumen mostró justo la diferencia que el ejercicio busca. Para ser honestos: `node` no está instalado en este equipo, así que no se ejecutó `scripts/check.js` ni la app; el resumen se basa solo en leer el diff.
